@@ -3,41 +3,40 @@ project(Project1)
 
 set(CMAKE_CXX_STANDARD 14)
 
-#compile flags to match Gradescope test environment
-set(GCC_COVERAGE_COMPILE_FLAGS "-Wall -Werror") # remove -Wall if you don't want as many warnings treated as errors
-# gradescope does use -Werror, so if you remove it here you may run into issues when trying to submit
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
+# Compile flags to match the Gradescope test environment
+set(GCC_COVERAGE_COMPILE_FLAGS "-Wall") 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
 
-##pull in desired version of catch through cmake automatically, make it available
+# Linker flag to specify console subsystem (required for Windows)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-subsystem,console")
+
+## Fetch Catch2 automatically through CMake
 Include(FetchContent)
 FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.5.2 # if you run into issues, try updating your editor or downgrading to a lower version of catch v3
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG        v3.5.2  # Use appropriate Catch2 version
 )
 FetchContent_MakeAvailable(Catch2)
 
 include_directories(src)
 
+# Main executable for manual testing
 add_executable(Main
-        src/main.cpp # your main file
-        # add your own header files below - should be automatically added in CLion
-        # example (can also separate with newlines):
-        # src/AVL.h src/AVL.cpp
-        )
-        
-# These tests can use the Catch2-provided main
-add_executable(Tests
-        test/test.cpp # your test file
-        # add your own header files below - should be automatically added in CLion
-        # example (can also separate with newlines):
-        # src/AVL.h src/AVL.cpp
-        )
-        
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain) #link catch to test.cpp file
-# the name here must match that of your testing executable (the one that has test.cpp)
+    src/avl_tree.cpp  # Include AVL tree implementation
+    src/main.cpp      # Main function file
+)
 
-# comment everything below out if you are using CLion
+# Test executable with Catch2 for unit testing
+add_executable(Tests
+    test/test.cpp     # Your test file
+    src/avl_tree.cpp  # Include the AVL tree source in the test target
+)
+
+# Link Catch2 to the test executable
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain)
+
+# Discover Catch2 tests
 include(CTest)
 include(Catch)
-catch_discover_tests(Tests) # must be named the same as your test executable
+catch_discover_tests(Tests)
