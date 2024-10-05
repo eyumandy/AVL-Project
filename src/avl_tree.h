@@ -19,8 +19,8 @@ public:
   // remove node by gatorID
   void remove(const string& gatorIDStr);
 
-  // search for a name and print gatorID
-  void search(const string& name);
+  // search for a name or ID
+  void search(const string& key);
 
   // print the tree in-order by names
   void printInOrder();
@@ -56,6 +56,7 @@ private:
   Node* removeHelper(Node* node, const string& gatorIDStr);
   bool searchHelper(Node* node, const string& gatorIDStr);
   void searchByNameHelper(Node* node, const string& name, bool& found);
+  Node* searchByGatorIDHelper(Node* node, const string& gatorIDStr);
   void printInOrderHelper(Node* node, bool& isFirst);
   void printPreorderHelper(Node* node, bool& isFirst);
   void printPostorderHelper(Node* node, bool& isFirst);

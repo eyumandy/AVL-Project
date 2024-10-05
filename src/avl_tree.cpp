@@ -2,204 +2,257 @@
 #include <regex>
 using namespace std;
 
-// init avl tree
-AVLTree::AVLTree() : root(nullptr) {}
+// constructor
+AVLTree::AVLTree() {
+  root = nullptr;
+}
 
-// clean up memory
+// destructor
 AVLTree::~AVLTree() {
   destroyTree(root);
 }
 
-// validate gator ID (must be 8 digits)
+// validate Gator ID (must be 8 digits)
 bool AVLTree::isValidGatorID(const string& gatorIDStr) {
-  return gatorIDStr.size() == 8 && all_of(gatorIDStr.begin(), gatorIDStr.end(), ::isdigit);
+  if (gatorIDStr.length() != 8)
+    return false;
+  for (char c : gatorIDStr) {
+    if (!isdigit(c))
+      return false;
+  }
+  return true;
 }
 
 // validate names (alphabet and space only)
 bool AVLTree::isValidName(const string& name) {
-  regex namePattern("^[A-Za-z ]+$");
-  return regex_match(name, namePattern);
+  for (char c : name) {
+    if (!isalpha(c) && c != ' ')
+      return false;
+  }
+  return !name.empty();
 }
 
 // insert into tree if valid
 void AVLTree::insert(const string& gatorIDStr, const string& name) {
-  if (!isValidGatorID(gatorIDStr) || !isValidName(name)) {
-    cout << "unsuccessful\n";
-    return;
+  if (isValidGatorID(gatorIDStr) && isValidName(name)) {
+    if (!searchHelper(root, gatorIDStr)) {
+      root = insertHelper(root, gatorIDStr, name);
+      cout << "successful\n";
+      return;
+    }
   }
-  if (searchHelper(root, gatorIDStr)) {
-    cout << "unsuccessful\n";
-  } else {
-    root = insertHelper(root, gatorIDStr, name);
-    cout << "successful\n";
-  }
+  cout << "unsuccessful\n";
 }
 
-// remove node based on gator ID
+// remove node based on Gator ID
 void AVLTree::remove(const string& gatorIDStr) {
-  if (!isValidGatorID(gatorIDStr)) {
-    cout << "unsuccessful\n";
-    return;
+  if (isValidGatorID(gatorIDStr)) {
+    if (searchHelper(root, gatorIDStr)) {
+      root = removeHelper(root, gatorIDStr);
+      cout << "successful\n";
+      return;
+    }
   }
-  if (!searchHelper(root, gatorIDStr)) {
-    cout << "unsuccessful\n";
+  cout << "unsuccessful\n";
+}
+
+// search for nodes by ID or name
+void AVLTree::search(const string& key) {
+  if (isValidGatorID(key)) {
+    // Search by Gator ID
+    Node* result = searchByGatorIDHelper(root, key);
+    if (result) {
+      cout << result->name << endl;
+    } else {
+      cout << "unsuccessful\n";
+    }
+  } else if (isValidName(key)) {
+    // Search by Name
+    bool found = false;
+    searchByNameHelper(root, key, found);
+    if (!found)
+      cout << "unsuccessful\n";
   } else {
-    root = removeHelper(root, gatorIDStr);
-    cout << "successful\n";
-  }
-}
-
-// search for nodes by name
-void AVLTree::search(const string& name) {
-  if (!isValidName(name)) {
-    cout << "unsuccessful\n";
-    return;
-  }
-  bool found = false;
-  searchByNameHelper(root, name, found);
-  if (!found) {
     cout << "unsuccessful\n";
   }
 }
 
-// search by name helper, recursive
+// helper for searching by Gator ID
+AVLTree::Node* AVLTree::searchByGatorIDHelper(Node* node, const string& gatorIDStr) {
+  if (node == nullptr)
+    return nullptr;
+  if (gatorIDStr < node->gatorID)
+    return searchByGatorIDHelper(node->left, gatorIDStr);
+  else if (gatorIDStr > node->gatorID)
+    return searchByGatorIDHelper(node->right, gatorIDStr);
+  else
+    return node;
+}
+
+// helper for searching by name (pre-order traversal)
 void AVLTree::searchByNameHelper(Node* node, const string& name, bool& found) {
-  if (node == nullptr) return;
-  if (node->name == name) {
-    cout << node->gatorID << endl;
-    found = true;
+  if (node != nullptr) {
+    if (node->name == name) {
+      cout << node->gatorID << endl;
+      found = true;
+    }
+    searchByNameHelper(node->left, name, found);
+    searchByNameHelper(node->right, name, found);
   }
-  searchByNameHelper(node->left, name, found);
-  searchByNameHelper(node->right, name, found);
 }
 
-// helper for searching by gator ID
+// helper for searching by Gator ID (returns true if found)
 bool AVLTree::searchHelper(Node* node, const string& gatorIDStr) {
-  if (node == nullptr) return false;
-  if (gatorIDStr < node->gatorID) return searchHelper(node->left, gatorIDStr);
-  if (gatorIDStr > node->gatorID) return searchHelper(node->right, gatorIDStr);
-  return true;
+  if (node == nullptr)
+    return false;
+  if (gatorIDStr < node->gatorID)
+    return searchHelper(node->left, gatorIDStr);
+  else if (gatorIDStr > node->gatorID)
+    return searchHelper(node->right, gatorIDStr);
+  else
+    return true;
 }
 
-// print tree in order, names only
+// print tree in-order, names only
 void AVLTree::printInOrder() {
-  bool isFirst = true;
-  printInOrderHelper(root, isFirst);
+  bool first = true;
+  printInOrderHelper(root, first);
   cout << endl;
 }
 
 // helper for in-order print
-void AVLTree::printInOrderHelper(Node* node, bool& isFirst) {
+void AVLTree::printInOrderHelper(Node* node, bool& first) {
   if (node != nullptr) {
-    printInOrderHelper(node->left, isFirst);
-    if (!isFirst) cout << ", ";
-    cout << node->name;
-    isFirst = false;
-    printInOrderHelper(node->right, isFirst);
+    printInOrderHelper(node->left, first);
+    if (first) {
+      cout << node->name;
+      first = false;
+    } else {
+      cout << ", " << node->name;
+    }
+    printInOrderHelper(node->right, first);
   }
 }
 
 // print tree in preorder, names only
 void AVLTree::printPreorder() {
-  bool isFirst = true;
-  printPreorderHelper(root, isFirst);
+  bool first = true;
+  printPreorderHelper(root, first);
   cout << endl;
 }
 
 // helper for preorder print
-void AVLTree::printPreorderHelper(Node* node, bool& isFirst) {
+void AVLTree::printPreorderHelper(Node* node, bool& first) {
   if (node != nullptr) {
-    if (!isFirst) cout << ", ";
-    cout << node->name;
-    isFirst = false;
-    printPreorderHelper(node->left, isFirst);
-    printPreorderHelper(node->right, isFirst);
+    if (first) {
+      cout << node->name;
+      first = false;
+    } else {
+      cout << ", " << node->name;
+    }
+    printPreorderHelper(node->left, first);
+    printPreorderHelper(node->right, first);
   }
 }
 
 // print tree in postorder, names only
 void AVLTree::printPostorder() {
-  bool isFirst = true;
-  printPostorderHelper(root, isFirst);
+  bool first = true;
+  printPostorderHelper(root, first);
   cout << endl;
 }
 
 // helper for postorder print
-void AVLTree::printPostorderHelper(Node* node, bool& isFirst) {
+void AVLTree::printPostorderHelper(Node* node, bool& first) {
   if (node != nullptr) {
-    printPostorderHelper(node->left, isFirst);
-    printPostorderHelper(node->right, isFirst);
-    if (!isFirst) cout << ", ";
-    cout << node->name;
-    isFirst = false;
+    printPostorderHelper(node->left, first);
+    printPostorderHelper(node->right, first);
+    if (first) {
+      cout << node->name;
+      first = false;
+    } else {
+      cout << ", " << node->name;
+    }
   }
 }
 
 // print number of levels in the tree
 void AVLTree::printLevelCount() {
-  cout << (root == nullptr ? 0 : height(root)) << endl;
+  if (root == nullptr)
+    cout << 0 << endl;
+  else
+    cout << height(root) << endl;
 }
 
 // remove by position in in-order traversal
 void AVLTree::removeInorder(int position) {
-  int current = 0;
-  string result = inorderHelper(root, position, current);
-  cout << (result.empty() ? "unsuccessful\n" : "successful\n");
+  int currentIndex = 0;
+  string res = inorderHelper(root, position, currentIndex);
+  if (res.empty()) {
+    cout << "unsuccessful\n";
+  }
 }
 
-// recursive helper for in-order remove
+// helper for in-order remove
 string AVLTree::inorderHelper(Node* node, int position, int& current) {
-  if (node == nullptr) return "";
-  string left = inorderHelper(node->left, position, current);
-  if (!left.empty()) return left;
+  if (node == nullptr)
+    return "";
+  string res = inorderHelper(node->left, position, current);
+  if (!res.empty())
+    return res;
   if (current == position) {
-    string gatorID = node->gatorID;
-    remove(gatorID);
-    return gatorID;
+    string id = node->gatorID;
+    remove(id);
+    return id;
   }
-  current++;
+  ++current;
   return inorderHelper(node->right, position, current);
 }
 
 // get node height
 int AVLTree::height(Node* node) {
-  return node == nullptr ? 0 : node->height;
+  if (node == nullptr)
+    return 0;
+  return node->height;
 }
 
 // calculate balance factor
 int AVLTree::getBalance(Node* node) {
-  return node == nullptr ? 0 : height(node->left) - height(node->right);
+  if (node == nullptr)
+    return 0;
+  return height(node->left) - height(node->right);
 }
 
 // rotate left
 AVLTree::Node* AVLTree::rotateLeft(Node* node) {
-  Node* newRoot = node->right;
-  node->right = newRoot->left;
-  newRoot->left = node;
-  node->height = 1 + max(height(node->left), height(node->right));
-  newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
-  return newRoot;
+  Node* rightChild = node->right;
+  node->right = rightChild->left;
+  rightChild->left = node;
+  node->height = max(height(node->left), height(node->right)) + 1;
+  rightChild->height = max(height(rightChild->left), height(rightChild->right)) + 1;
+  return rightChild;
 }
 
 // rotate right
 AVLTree::Node* AVLTree::rotateRight(Node* node) {
-  Node* newRoot = node->left;
-  node->left = newRoot->right;
-  newRoot->right = node;
-  node->height = 1 + max(height(node->left), height(node->right));
-  newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
-  return newRoot;
+  Node* leftChild = node->left;
+  node->left = leftChild->right;
+  leftChild->right = node;
+  node->height = max(height(node->left), height(node->right)) + 1;
+  leftChild->height = max(height(leftChild->left), height(leftChild->right)) + 1;
+  return leftChild;
 }
 
 // balance node based on balance factor
 AVLTree::Node* AVLTree::balance(Node* node) {
-  int balanceFactor = getBalance(node);
-  if (balanceFactor > 1) {
-    if (getBalance(node->left) < 0) node->left = rotateLeft(node->left);
+  int bf = getBalance(node);
+  if (bf > 1) {
+    if (getBalance(node->left) < 0)
+      node->left = rotateLeft(node->left);
     return rotateRight(node);
-  }
-  if (balanceFactor < -1) {
-    if (getBalance(node->right) > 0) node->right = rotateRight(node->right);
+  } else if (bf < -1) {
+    if (getBalance(node->right) > 0)
+      node->right = rotateRight(node->right);
     return rotateLeft(node);
   }
   return node;
@@ -207,25 +260,36 @@ AVLTree::Node* AVLTree::balance(Node* node) {
 
 // helper for inserting into tree
 AVLTree::Node* AVLTree::insertHelper(Node* node, const string& gatorIDStr, const string& name) {
-  if (node == nullptr) return new Node(gatorIDStr, name);
-  if (gatorIDStr < node->gatorID) node->left = insertHelper(node->left, gatorIDStr, name);
-  else if (gatorIDStr > node->gatorID) node->right = insertHelper(node->right, gatorIDStr, name);
-  else return node;
-  node->height = 1 + max(height(node->left), height(node->right));
+  if (node == nullptr)
+    return new Node(gatorIDStr, name);
+  if (gatorIDStr < node->gatorID)
+    node->left = insertHelper(node->left, gatorIDStr, name);
+  else if (gatorIDStr > node->gatorID)
+    node->right = insertHelper(node->right, gatorIDStr, name);
+  else
+    return node;
+  node->height = max(height(node->left), height(node->right)) + 1;
   return balance(node);
 }
 
 // helper for removing node
 AVLTree::Node* AVLTree::removeHelper(Node* node, const string& gatorIDStr) {
-  if (node == nullptr) return node;
-  if (gatorIDStr < node->gatorID) node->left = removeHelper(node->left, gatorIDStr);
-  else if (gatorIDStr > node->gatorID) node->right = removeHelper(node->right, gatorIDStr);
+  if (node == nullptr)
+    return node;
+  if (gatorIDStr < node->gatorID)
+    node->left = removeHelper(node->left, gatorIDStr);
+  else if (gatorIDStr > node->gatorID)
+    node->right = removeHelper(node->right, gatorIDStr);
   else {
     if (node->left == nullptr || node->right == nullptr) {
       Node* temp = node->left ? node->left : node->right;
-      if (temp == nullptr) node = nullptr;
-      else *node = *temp;
-      delete temp;
+      if (temp == nullptr) {
+        delete node;
+        node = nullptr;
+      } else {
+        *node = *temp;
+        delete temp;
+      }
     } else {
       Node* temp = minValueNode(node->right);
       node->gatorID = temp->gatorID;
@@ -233,22 +297,24 @@ AVLTree::Node* AVLTree::removeHelper(Node* node, const string& gatorIDStr) {
       node->right = removeHelper(node->right, temp->gatorID);
     }
   }
-  if (node == nullptr) return node;
-  node->height = 1 + max(height(node->left), height(node->right));
+  if (node == nullptr)
+    return node;
+  node->height = max(height(node->left), height(node->right)) + 1;
   return balance(node);
 }
 
 // find node with minimum value
 AVLTree::Node* AVLTree::minValueNode(Node* node) {
-  Node* current = node;
-  while (current && current->left != nullptr) current = current->left;
-  return current;
+  while (node->left != nullptr)
+    node = node->left;
+  return node;
 }
 
 // recursively delete tree nodes
 void AVLTree::destroyTree(Node* node) {
-  if (node == nullptr) return;
-  destroyTree(node->left);
-  destroyTree(node->right);
-  delete node;
+  if (node != nullptr) {
+    destroyTree(node->left);
+    destroyTree(node->right);
+    delete node;
+  }
 }
