@@ -5,67 +5,76 @@
 #include <string>
 #include <algorithm>
 #include <regex>
+using namespace std;
 
 class AVLTree {
 public:
-    // Constructor
-    AVLTree();
+  AVLTree();  // constructor
 
-    // Destructor
-    ~AVLTree();
+  ~AVLTree();  // destructor
 
-    // Insert a node into the tree with a Gator ID and name
-    void insert(const std::string& gatorIDStr, const std::string& name);
+  // insert a new node with gatorID and name
+  void insert(const string& gatorIDStr, const string& name);
 
-    // Remove a node from the tree using Gator ID
-    void remove(const std::string& gatorIDStr);
+  // remove node by gatorID
+  void remove(const string& gatorIDStr);
 
-    // Search for a student by name and print the associated Gator ID(s)
-    void search(const std::string& name);
+  // search for a name and print gatorID
+  void search(const string& name);
 
-    // Print the tree in-order
-    void printInOrder();
+  // print the tree in-order by names
+  void printInOrder();
 
-    // Remove node by in-order position
-    void removeInorder(int position);
+  // print the tree in preorder by names
+  void printPreorder();
+
+  // print the tree in postorder by names
+  void printPostorder();
+
+  // print the number of levels in the tree
+  void printLevelCount();
+
+  // remove a node by its in-order position
+  void removeInorder(int position);
 
 private:
-    struct Node {
-        std::string gatorID;  // Gator ID stored as a string to keep leading zeroes
-        std::string name;
-        int height;
-        Node* left;
-        Node* right;
+  struct Node {
+    string gatorID;
+    string name;
+    int height;
+    Node* left;
+    Node* right;
 
-        Node(const std::string& gID, const std::string& n) : gatorID(gID), name(n), height(1), left(nullptr), right(nullptr) {}
-    };
+    // constructor for node
+    Node(const string& gID, const string& n) : gatorID(gID), name(n), height(1), left(nullptr), right(nullptr) {}
+  };
 
-    Node* root;
+  Node* root;  // root of the tree
 
-    // Helper functions
-    Node* insertHelper(Node* node, const std::string& gatorIDStr, const std::string& name);
-    Node* removeHelper(Node* node, const std::string& gatorIDStr);
-    bool searchHelper(Node* node, const std::string& gatorIDStr);
-    void searchByNameHelper(Node* node, const std::string& name, bool& found);
-    void printInOrderHelper(Node* node, bool& isFirst);
-    std::string inorderHelper(Node* node, int position, int& current);
+  // helpers for insert, remove, search
+  Node* insertHelper(Node* node, const string& gatorIDStr, const string& name);
+  Node* removeHelper(Node* node, const string& gatorIDStr);
+  bool searchHelper(Node* node, const string& gatorIDStr);
+  void searchByNameHelper(Node* node, const string& name, bool& found);
+  void printInOrderHelper(Node* node, bool& isFirst);
+  void printPreorderHelper(Node* node, bool& isFirst);
+  void printPostorderHelper(Node* node, bool& isFirst);
+  string inorderHelper(Node* node, int position, int& current);
 
-    // AVL-specific helpers
-    int height(Node* node);
-    int getBalance(Node* node);
-    Node* rotateLeft(Node* node);
-    Node* rotateRight(Node* node);
-    Node* balance(Node* node);
-    Node* minValueNode(Node* node);
+  // AVL tree specific functions
+  int height(Node* node);
+  int getBalance(Node* node);
+  Node* rotateLeft(Node* node);
+  Node* rotateRight(Node* node);
+  Node* balance(Node* node);
+  Node* minValueNode(Node* node);
 
-    // Destructor helper
-    void destroyTree(Node* node);
+  // cleanup memory
+  void destroyTree(Node* node);
 
-    // Helper function to validate Gator ID
-    bool isValidGatorID(const std::string& gatorIDStr);
-
-    // Helper function to validate names
-    bool isValidName(const std::string& name);
+  // validation helpers
+  bool isValidGatorID(const string& gatorIDStr);
+  bool isValidName(const string& name);
 };
 
 #endif  // AVL_TREE_H
